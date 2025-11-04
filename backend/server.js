@@ -19,10 +19,12 @@ app.get('/', (req, res) => {
 // Import routes
 const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
+const orderRoutes = require('./routes/orderRoutes');
 
+// Use routes (order doesn't really matter, but this is conventional)
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
-
+app.use('/api/orders', orderRoutes);
 
 // Sync DB and start server
 sequelize.sync()
