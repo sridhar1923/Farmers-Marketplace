@@ -10,18 +10,26 @@ exports.createOrder = async (req, res) => {
     const product = await Product.findByPk(productId);
 
     if (!user || !product) {
-      return res.status(400).json({ message: 'Invalid user or product' });
+      return res.status(400).json({ message: "Invalid user or product" });
+    }
+
+    if (product.stock < quantity) {
+      return res.status(400).json({ message: "Not enough stock available" });
     }
 
     const totalPrice = product.price * quantity;
 
+    // Create order and update stock
     const order = await Order.create({ userId, productId, quantity, totalPrice });
-    res.status(201).json({ message: 'Order placed successfully', order });
+    await product.update({ stock: product.stock - quantity });
+
+    res.status(201).json({ message: "✅ Order placed successfully", order });
   } catch (error) {
-    console.error('❌ Error creating order:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error("❌ Error creating order:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 exports.getAllOrders = async (req, res) => {
   try {

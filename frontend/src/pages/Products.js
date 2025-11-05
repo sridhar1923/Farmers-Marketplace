@@ -1,41 +1,49 @@
-import React, { useEffect, useState } from "react";
-import api from "../api/axiosConfig";
+import React, { useState, useEffect, useContext } from "react";
+import axios from "axios";
+import { AuthContext } from "../context/AuthContext";
+
 
 function Products() {
+  const { user } = useContext(AuthContext);
   const [products, setProducts] = useState([]);
-  const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await api.get("/products");
-        setProducts(res.data);
-      } catch (err) {
-        setError("Failed to fetch products");
-      }
-    };
-    fetchProducts();
+    axios.get("http://localhost:5000/api/products")
+      .then(res => setProducts(res.data))
+      .catch(err => console.error(err));
   }, []);
 
+  const handleOrder = async (productId) => {
+  try {
+    const res = await api.post("/orders", {
+      userId: user.id,
+      productId,
+      quantity: 1,
+    });
+    alert("✅ Order placed successfully!");
+  } catch (error) {
+    console.error(error);
+    alert(error.response?.data?.message || "Failed to place order");
+  }
+};
+
+
   return (
-    <div className="p-6 bg-green-50 min-h-screen">
-      <h1 className="text-3xl font-bold text-green-700 mb-6 text-center">
-        🥕 Available Products
-      </h1>
-      {error && <p className="text-red-500 text-center">{error}</p>}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {products.map((p) => (
-          <div
-            key={p.id}
-            className="bg-white rounded-xl shadow-md p-4 hover:shadow-lg transition"
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
+      {products.map((product) => (
+        <div key={product.id} className="bg-white p-4 rounded-xl shadow">
+          <h2 className="text-xl font-semibold">{product.name}</h2>
+          <p className="text-gray-600">{product.description}</p>
+          <p className="mt-2 font-bold text-green-700">₹{product.price}</p>
+
+          <button
+            onClick={() => handleOrder(product.id)}
+            className="mt-3 bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-800"
           >
-            <h2 className="text-xl font-semibold text-green-800">{p.name}</h2>
-            <p className="text-gray-600 mb-2">{p.description}</p>
-            <p className="text-green-600 font-bold">₹{p.price}</p>
-            <p className="text-sm text-gray-500">Farmer: {p.User?.name}</p>
-          </div>
-        ))}
-      </div>
+            🛒 Order Now
+          </button>
+        </div>
+      ))}
     </div>
   );
 }
