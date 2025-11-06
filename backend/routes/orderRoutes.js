@@ -1,17 +1,14 @@
 // backend/routes/orderRoutes.js
-const express = require('express');
-const {
-  createOrder,
-  getAllOrders,
-  getUserOrders,
-  deleteOrder
-} = require('../controllers/orderController');
+const express = require("express");
+const { createOrder, getAllOrders, getUserOrders, deleteOrder } = require("../controllers/orderController");
+const protect = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-router.post('/', createOrder);              // Place new order
-router.get('/', getAllOrders);              // View all orders
-router.get('/user/:userId', getUserOrders); // View specific user's orders
-router.delete('/:id', deleteOrder);         // Cancel an order
+// 🧾 Routes
+router.post("/", protect, createOrder);
+router.get("/", protect, getAllOrders);
+router.get("/user/:userId", protect, getUserOrders);
+router.delete("/:id", protect, deleteOrder);
 
 module.exports = router;

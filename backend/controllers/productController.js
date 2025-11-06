@@ -61,11 +61,12 @@ exports.updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
     const { name, description, price, stock } = req.body;
+
     const product = await Product.findByPk(id);
     if (!product) return res.status(404).json({ message: 'Product not found' });
 
     await product.update({ name, description, price, stock });
-    res.json({ message: 'Product updated successfully', product });
+    res.json({ message: '✅ Product updated successfully', product });
   } catch (error) {
     console.error('❌ Error updating product:', error);
     res.status(500).json({ message: 'Internal server error' });
