@@ -2,6 +2,7 @@
 const Order = require('../models/Order');
 const User = require('../models/User');
 const Product = require('../models/Product');
+const Cart = require("../models/Cart");
 
 exports.createOrder = async (req, res) => {
   try {
@@ -82,4 +83,55 @@ exports.getAllOrders = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+exports.checkout = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    console.log("🧾 Checkout triggered by user:", userId);
+
+    // ✅ Fetch all cart items for this user
+    const cartItems = await Cart.findAll({
+      where: { userId },
+      include: [Product],
+    });
+
+    console.log("🛒 Cart items:", cartItems);
+
+    if (!cartItems || cartItems.length === 0) {
+      return res.status(400).json({ message: "Cart is empty" });
+    }
+
+    // ✅ Create orders for each cart item
+    for (const item of cartItems) {
+      if (!item.Product) {
+        console.error("⚠️ Product not found for cart item:", item.productId);
+        continue;
+      }
+
+      const totalPrice = item.Product.price * item.quantity;
+
+      await Order.create({
+        userId,
+        productId: item.productId,
+        quantity: item.quantity,
+        totalPrice,
+      });
+
+      // ✅ Reduce product stock
+      item.Product.stock -= item.quantity;
+      await item.Product.save();
+    }
+
+    // ✅ Clear cart
+    await Cart.destroy({ where: { userId } });
+
+    console.log("✅ Checkout complete for user:", userId);
+    res.json({ message: "Checkout successful" });
+  } catch (error) {
+    console.error("❌ Checkout error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 

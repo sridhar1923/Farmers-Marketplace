@@ -19,4 +19,5 @@ module.exports = (req, res, next) => {
     console.error("❌ Invalid token:", error);
     res.status(401).json({ message: "Invalid token" });
   }
+  console.log("👤 Authenticated User in middleware:", req.user);
 };
