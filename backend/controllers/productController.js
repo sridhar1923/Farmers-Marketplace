@@ -1,32 +1,62 @@
 // backend/controllers/productController.js
 const Product = require('../models/Product');
 const User = require('../models/User');
+const Order = require("../models/Order");
+
+exports.getFarmerStats = async (req, res) => {
+  try {
+    const farmerId = req.user.id;
+
+    // ✅ Fetch all products belonging to this farmer
+    const products = await Product.findAll({ where: { farmerId } });
+
+    // ✅ For each product, calculate total sold quantity and total earnings
+    const productsWithStats = await Promise.all(
+      products.map(async (product) => {
+        const totalSold = await Order.sum("quantity", {
+          where: { productId: product.id },
+        });
+
+        const totalEarnings = await Order.sum("totalPrice", {
+          where: { productId: product.id },
+        });
+
+        return {
+          ...product.dataValues,
+          totalSold: totalSold || 0,
+          totalEarnings: totalEarnings || 0,
+        };
+      })
+    );
+
+    res.json(productsWithStats);
+  } catch (error) {
+    console.error("❌ Error fetching farmer stats:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 
 // ➕ Add a new product
 exports.createProduct = async (req, res) => {
   try {
-    const { name, description, price, stock, farmerId } = req.body;
-
-    // check if farmer exists
-    const farmer = await User.findByPk(farmerId);
-    if (!farmer || farmer.role !== 'farmer') {
-      return res.status(400).json({ message: 'Invalid farmer ID' });
-    }
+    const { name, description, price, stock } = req.body;
+    const farmerId = req.user.id; // ✅ use authenticated user id
 
     const product = await Product.create({
       name,
       description,
       price,
       stock,
-      farmerId
+      farmerId,
     });
 
-    res.status(201).json({ message: 'Product added successfully', product });
+    res.status(201).json(product);
   } catch (error) {
-    console.error('❌ Error creating product:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error("❌ Error creating product:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 // 📋 Get all products
 exports.getAllProducts = async (req, res) => {
@@ -61,17 +91,34 @@ exports.updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
     const { name, description, price, stock } = req.body;
+    const farmerId = req.user.id;
 
+    // ✅ Find the product
     const product = await Product.findByPk(id);
-    if (!product) return res.status(404).json({ message: 'Product not found' });
 
-    await product.update({ name, description, price, stock });
-    res.json({ message: '✅ Product updated successfully', product });
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // ✅ Make sure the logged-in farmer owns the product
+    if (product.farmerId !== farmerId) {
+      return res.status(403).json({ message: "Unauthorized: cannot edit others' products" });
+    }
+
+    // ✅ Update product fields
+    product.name = name;
+    product.description = description;
+    product.price = price;
+    product.stock = stock;
+    await product.save();
+
+    res.json({ message: "Product updated successfully", product });
   } catch (error) {
-    console.error('❌ Error updating product:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error("❌ Error updating product:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 // 🗑️ Delete product
 exports.deleteProduct = async (req, res) => {

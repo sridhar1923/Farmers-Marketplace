@@ -1,3 +1,25 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --bg-dark: #0f1115;
+  --card-dark: #1b1f27;
+  --accent: #22c55e;
+  --text-light: #f5f5f5;
+  --muted: #9ca3af;
+  --hover: #2a303c;
+}
+
+/* Smooth transitions */
+* {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Apply dark background globally */
+body {
+  background-color: var(--bg-dark);
+  color: var(--text-light);
+  font-family: "Poppins", sans-serif;
+}
+

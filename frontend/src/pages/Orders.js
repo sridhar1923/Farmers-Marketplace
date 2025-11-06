@@ -4,14 +4,14 @@ import api from "../api/axiosConfig";
 import { AuthContext } from "../context/AuthContext";
 
 function Orders() {
-  const { token, user } = useContext(AuthContext);
+  const { token } = useContext(AuthContext);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [message, setMessage] = useState("");
 
-  // Load products & user orders
+  // Load products & orders
   useEffect(() => {
     if (!token) return;
     const fetchData = async () => {
@@ -47,7 +47,7 @@ function Orders() {
       setQuantity(1);
       setSelectedProduct("");
 
-      // refresh orders
+      // Refresh orders
       const orderRes = await api.get("/orders", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -59,24 +59,26 @@ function Orders() {
   };
 
   return (
-    <div className="min-h-screen bg-green-50 p-6">
-      <h1 className="text-3xl font-bold text-green-700 mb-6 text-center">
-        🛒 Customer Orders
+    <div className="min-h-screen bg-[#0f1115] text-gray-100 p-8 font-['Poppins']">
+      <h1 className="text-4xl font-bold text-emerald-400 mb-10 text-center drop-shadow-lg">
+        🛒 Your Orders
       </h1>
 
       {/* Order Form */}
       <form
         onSubmit={handleOrder}
-        className="bg-white p-6 rounded-xl shadow-md mb-6 max-w-md mx-auto"
+        className="bg-[#1b1f27] p-6 rounded-2xl shadow-lg border border-gray-700 
+                   hover:shadow-[0_0_15px_#22c55e40] transition-all duration-300 mb-10 max-w-md mx-auto"
       >
-        <h2 className="text-xl font-semibold mb-4 text-green-600">
-          Place an Order
+        <h2 className="text-2xl font-semibold mb-5 text-emerald-400 text-center">
+          Place a New Order
         </h2>
 
         <select
           value={selectedProduct}
           onChange={(e) => setSelectedProduct(e.target.value)}
-          className="border p-2 rounded w-full mb-3"
+          className="bg-[#0f1115] border border-gray-700 p-3 rounded-lg w-full text-gray-100 mb-4 
+                     focus:outline-none focus:border-emerald-400 transition-all"
           required
         >
           <option value="">Select Product</option>
@@ -93,38 +95,48 @@ function Orders() {
           value={quantity}
           min="1"
           onChange={(e) => setQuantity(e.target.value)}
-          className="border p-2 rounded w-full mb-3"
+          className="bg-[#0f1115] border border-gray-700 p-3 rounded-lg w-full text-gray-100 mb-5 
+                     focus:outline-none focus:border-emerald-400 transition-all"
           required
         />
 
-        <button className="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 w-full">
-          Place Order
+        <button
+          type="submit"
+          className="bg-emerald-500 hover:bg-emerald-400 text-black font-semibold py-3 px-4 rounded-lg 
+                     shadow-md hover:shadow-[0_0_15px_#22c55e80] transition-all w-full"
+        >
+          🚀 Place Order
         </button>
 
         {message && (
-          <p className="text-center text-sm mt-3 text-green-700 font-semibold">
+          <p className="text-center text-sm mt-4 text-emerald-400 font-semibold">
             {message}
           </p>
         )}
       </form>
 
       {/* Orders List */}
-      <div className="max-w-4xl mx-auto">
-        <h2 className="text-2xl font-semibold mb-4 text-green-700">
-          Your Orders
+      <div className="max-w-5xl mx-auto">
+        <h2 className="text-2xl font-semibold mb-6 text-emerald-400 text-center">
+          Order History
         </h2>
+
         {orders.length === 0 ? (
-          <p className="text-gray-500">No orders placed yet.</p>
+          <p className="text-center text-gray-500">No orders placed yet.</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {orders.map((o) => (
-              <div key={o.id} className="bg-white p-4 rounded-xl shadow-md">
-                <h3 className="text-lg font-semibold text-green-800">
+              <div
+                key={o.id}
+                className="bg-[#1b1f27] p-5 rounded-2xl shadow-md border border-gray-700 
+                           hover:shadow-[0_0_15px_#22c55e30] transition-all duration-300"
+              >
+                <h3 className="text-xl font-semibold text-emerald-400 mb-1">
                   {o.Product?.name}
                 </h3>
-                <p>Quantity: {o.quantity}</p>
-                <p>Total Price: ₹{o.totalPrice}</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-gray-300 mb-1">Quantity: {o.quantity}</p>
+                <p className="text-gray-300 mb-1">Total: ₹{o.totalPrice}</p>
+                <p className="text-sm text-gray-500 mt-2">
                   Ordered on:{" "}
                   {new Date(o.createdAt).toLocaleString("en-IN", {
                     dateStyle: "medium",

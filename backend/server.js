@@ -24,12 +24,14 @@ const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const errorHandler = require("./middleware/errorHandler");
+const cartRoutes = require("./routes/cartRoutes");
 
 // Use routes (order doesn't really matter, but this is conventional)
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use(errorHandler);
+app.use('/api/cart', cartRoutes);
 
 // Sync DB and start server
 sequelize.sync()
