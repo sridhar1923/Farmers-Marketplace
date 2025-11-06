@@ -1,44 +1,59 @@
-import React, { useState, useEffect } from "react";
+// src/pages/Orders.js
+import React, { useState, useEffect, useContext } from "react";
 import api from "../api/axiosConfig";
+import { AuthContext } from "../context/AuthContext";
 
 function Orders() {
+  const { token, user } = useContext(AuthContext);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [message, setMessage] = useState("");
 
-  const userId = 1; // temporary, will use logged-in user later
-
-  // Load products and existing orders
+  // Load products & user orders
   useEffect(() => {
+    if (!token) return;
     const fetchData = async () => {
       try {
         const [productRes, orderRes] = await Promise.all([
           api.get("/products"),
-          api.get(`/orders/user/${userId}`)
+          api.get("/orders", { headers: { Authorization: `Bearer ${token}` } }),
         ]);
         setProducts(productRes.data);
         setOrders(orderRes.data);
       } catch (error) {
-        console.error("Error loading data:", error);
+        console.error("❌ Error loading data:", error);
       }
     };
     fetchData();
-  }, []);
+  }, [token]);
 
   // Handle order placement
   const handleOrder = async (e) => {
     e.preventDefault();
+    if (!token) {
+      setMessage("⚠️ Please login first!");
+      return;
+    }
+
     try {
-      await api.post("/orders", { userId, productId: selectedProduct, quantity });
+      await api.post(
+        "/orders",
+        { productId: selectedProduct, quantity },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setMessage("✅ Order placed successfully!");
       setQuantity(1);
       setSelectedProduct("");
-      const orderRes = await api.get(`/orders/user/${userId}`);
+
+      // refresh orders
+      const orderRes = await api.get("/orders", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setOrders(orderRes.data);
     } catch (error) {
-      console.error("Error placing order:", error);
+      console.error("❌ Error placing order:", error.response?.data || error);
       setMessage("❌ Failed to place order.");
     }
   };
@@ -54,7 +69,9 @@ function Orders() {
         onSubmit={handleOrder}
         className="bg-white p-6 rounded-xl shadow-md mb-6 max-w-md mx-auto"
       >
-        <h2 className="text-xl font-semibold mb-4 text-green-600">Place an Order</h2>
+        <h2 className="text-xl font-semibold mb-4 text-green-600">
+          Place an Order
+        </h2>
 
         <select
           value={selectedProduct}
@@ -93,7 +110,9 @@ function Orders() {
 
       {/* Orders List */}
       <div className="max-w-4xl mx-auto">
-        <h2 className="text-2xl font-semibold mb-4 text-green-700">Your Orders</h2>
+        <h2 className="text-2xl font-semibold mb-4 text-green-700">
+          Your Orders
+        </h2>
         {orders.length === 0 ? (
           <p className="text-gray-500">No orders placed yet.</p>
         ) : (
@@ -106,7 +125,11 @@ function Orders() {
                 <p>Quantity: {o.quantity}</p>
                 <p>Total Price: ₹{o.totalPrice}</p>
                 <p className="text-sm text-gray-500">
-                  Ordered on: {new Date(o.createdAt).toLocaleDateString()}
+                  Ordered on:{" "}
+                  {new Date(o.createdAt).toLocaleString("en-IN", {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  })}
                 </p>
               </div>
             ))}
