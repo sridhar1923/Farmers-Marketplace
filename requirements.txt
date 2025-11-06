@@ -1,0 +1,23 @@
+# Farmer’s Marketplace — Installation Requirements
+# Run the following commands to set up the environment
+
+# ---- BACKEND DEPENDENCIES ----
+npm install express
+npm install sequelize
+npm install mysql2
+npm install bcryptjs
+npm install jsonwebtoken
+npm install dotenv
+npm install cors
+npm install nodemon
+
+# ---- FRONTEND DEPENDENCIES ----
+cd frontend
+npm install react
+npm install react-dom
+npm install react-router-dom
+npm install axios
+npm install tailwindcss
+npm install framer-motion
+npm install @headlessui/react
+npm install @heroicons/react
